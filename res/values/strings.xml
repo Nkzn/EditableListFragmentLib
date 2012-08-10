@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">EditableListFragment</string>
-    <string name="plus_one">追加する</string>
+    <string name="add_item">項目を追加する</string>
+    <string name="ok">OK</string>
+    <string name="cancel">キャンセル</string>
+    <string name="edit_title">%1$sを編集</string>
 </resources>
