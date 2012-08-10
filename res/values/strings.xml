@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">EditableListFragment</string>
+    <string name="plus_one">追加する</string>
 </resources>
