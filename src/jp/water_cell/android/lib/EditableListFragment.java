@@ -73,18 +73,27 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	}
 
 	private void onClickPlusOne() {
-		new AlertDialog.Builder(getActivity()).setTitle(R.string.add_item).setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				// TODO Auto-generated method stub
 
-			}
-		}).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				dialog.dismiss();
-			}
-		}).show();
+		LayoutInflater inflater = LayoutInflater.from(getActivity());
+		View view = inflater.inflate(R.layout.input_dialog, null);
+		final EditText etInput = (EditText) view.findViewById(R.id.et_input);
+
+		new AlertDialog.Builder(getActivity()).setTitle(R.string.add_item).setView(view)
+				.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						mItems.add(mItems.size() - 1, new ListItem(null, etInput.getText().toString()));
+						if (mAdapter != null) {
+							mAdapter.notifyDataSetChanged(); // TODO
+																// 本当はIDが振られた後に更新
+						}
+					}
+				}).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+					}
+				}).show();
 	}
 
 	private void onClickItem(int position) {
@@ -120,7 +129,9 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						item.setTitle(etInput.getText().toString());
-						mAdapter.notifyDataSetChanged();
+						if (mAdapter != null) {
+							mAdapter.notifyDataSetChanged();
+						}
 					}
 				}).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
 					@Override
@@ -130,8 +141,25 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 				}).show();
 	}
 
-	private void onClickDelete(ListItem item) {
-		// TODO Auto-generated method stub
+	private void onClickDelete(ListItem _item) {
+		final ListItem item = _item;
+
+		new AlertDialog.Builder(getActivity()).setTitle(R.string.delete_confirm).setMessage(item.getTitle())
+				.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						mItems.remove(item);
+						if (mAdapter != null) {
+							mAdapter.notifyDataSetChanged(); // TODO
+																// 本当は削除成功のレスポンスがあってから更新
+						}
+					}
+				}).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+					}
+				}).show();
 
 	}
 

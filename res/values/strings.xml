@@ -5,6 +5,7 @@
     <string name="cancel">キャンセル</string>
     <string name="edit_title">%1$sを編集</string>
     <string name="item_name">項目名</string>
+    <string name="delete_confirm">この記録を削除しますか？</string>
     
     <string-array name="edit_delete">
         <item>編集</item>
