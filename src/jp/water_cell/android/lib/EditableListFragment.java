@@ -9,11 +9,13 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.TextView;
 
 public class EditableListFragment extends ListFragment implements OnItemClickListener {
@@ -65,43 +67,100 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 		if (TextUtils.equals(itemId, LISTITEM_ID_PLUSONE)) {
 			onClickPlusOne();
 		} else {
-			onClickEdit(position);
+			onClickItem(position);
 		}
 
 	}
 
 	private void onClickPlusOne() {
-		new AlertDialog.Builder(getActivity()).setTitle(R.string.add_item).setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				// TODO Auto-generated method stub
 
-			}
-		}).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+		LayoutInflater inflater = LayoutInflater.from(getActivity());
+		View view = inflater.inflate(R.layout.input_dialog, null);
+		final EditText etInput = (EditText) view.findViewById(R.id.et_input);
+
+		new AlertDialog.Builder(getActivity()).setTitle(R.string.add_item).setView(view)
+				.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						mItems.add(mItems.size() - 1, new ListItem(null, etInput.getText().toString()));
+						if (mAdapter != null) {
+							mAdapter.notifyDataSetChanged(); // TODO
+																// 本当はIDが振られた後に更新
+						}
+					}
+				}).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+					}
+				}).show();
+	}
+
+	private void onClickItem(int position) {
+		final ListItem original = mItems.get(position);
+
+		new AlertDialog.Builder(getActivity()).setItems(R.array.edit_delete, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				dialog.dismiss();
+				switch (which) {
+				case 0:
+					onClickEdit(original);
+					break;
+				case 1:
+					onClickDelete(original);
+					break;
+				}
 			}
 		}).show();
 	}
 
-	private void onClickEdit(int position) {
-		final ListItem original = mItems.get(position);
-		String title = original.getTitle();
+	private void onClickEdit(ListItem _item) {
+		final ListItem item = _item;
+		String title = item.getTitle();
 		String dialogTitle = getString(R.string.edit_title, (TextUtils.isEmpty(title) ? "" : title));
 
-		new AlertDialog.Builder(getActivity()).setTitle(dialogTitle).setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				// TODO Auto-generated method stub
+		LayoutInflater inflater = LayoutInflater.from(getActivity());
+		View view = inflater.inflate(R.layout.input_dialog, null);
+		final EditText etInput = (EditText) view.findViewById(R.id.et_input);
+		etInput.setText((TextUtils.isEmpty(title) ? "" : title));
 
-			}
-		}).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				dialog.dismiss();
-			}
-		}).show();
+		new AlertDialog.Builder(getActivity()).setTitle(dialogTitle).setView(view)
+				.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						item.setTitle(etInput.getText().toString());
+						if (mAdapter != null) {
+							mAdapter.notifyDataSetChanged();
+						}
+					}
+				}).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+					}
+				}).show();
+	}
+
+	private void onClickDelete(ListItem _item) {
+		final ListItem item = _item;
+
+		new AlertDialog.Builder(getActivity()).setTitle(R.string.delete_confirm).setMessage(item.getTitle())
+				.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						mItems.remove(item);
+						if (mAdapter != null) {
+							mAdapter.notifyDataSetChanged(); // TODO
+																// 本当は削除成功のレスポンスがあってから更新
+						}
+					}
+				}).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+					}
+				}).show();
+
 	}
 
 	public void setOnListChangedListener(OnListChangedListener listener) {
