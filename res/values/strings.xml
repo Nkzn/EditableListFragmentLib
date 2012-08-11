@@ -4,4 +4,10 @@
     <string name="ok">OK</string>
     <string name="cancel">キャンセル</string>
     <string name="edit_title">%1$sを編集</string>
+    <string name="item_name">項目名</string>
+    
+    <string-array name="edit_delete">
+        <item>編集</item>
+        <item>削除</item>
+    </string-array>
 </resources>

@@ -9,11 +9,13 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.TextView;
 
 public class EditableListFragment extends ListFragment implements OnItemClickListener {
@@ -65,7 +67,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 		if (TextUtils.equals(itemId, LISTITEM_ID_PLUSONE)) {
 			onClickPlusOne();
 		} else {
-			onClickEdit(position);
+			onClickItem(position);
 		}
 
 	}
@@ -85,23 +87,52 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 		}).show();
 	}
 
-	private void onClickEdit(int position) {
+	private void onClickItem(int position) {
 		final ListItem original = mItems.get(position);
-		String title = original.getTitle();
-		String dialogTitle = getString(R.string.edit_title, (TextUtils.isEmpty(title) ? "" : title));
 
-		new AlertDialog.Builder(getActivity()).setTitle(dialogTitle).setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+		new AlertDialog.Builder(getActivity()).setItems(R.array.edit_delete, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				// TODO Auto-generated method stub
-
-			}
-		}).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				dialog.dismiss();
+				switch (which) {
+				case 0:
+					onClickEdit(original);
+					break;
+				case 1:
+					onClickDelete(original);
+					break;
+				}
 			}
 		}).show();
+	}
+
+	private void onClickEdit(ListItem _item) {
+		final ListItem item = _item;
+		String title = item.getTitle();
+		String dialogTitle = getString(R.string.edit_title, (TextUtils.isEmpty(title) ? "" : title));
+
+		LayoutInflater inflater = LayoutInflater.from(getActivity());
+		View view = inflater.inflate(R.layout.input_dialog, null);
+		final EditText etInput = (EditText) view.findViewById(R.id.et_input);
+		etInput.setText((TextUtils.isEmpty(title) ? "" : title));
+
+		new AlertDialog.Builder(getActivity()).setTitle(dialogTitle).setView(view)
+				.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						item.setTitle(etInput.getText().toString());
+						mAdapter.notifyDataSetChanged();
+					}
+				}).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+					}
+				}).show();
+	}
+
+	private void onClickDelete(ListItem item) {
+		// TODO Auto-generated method stub
+
 	}
 
 	public void setOnListChangedListener(OnListChangedListener listener) {
