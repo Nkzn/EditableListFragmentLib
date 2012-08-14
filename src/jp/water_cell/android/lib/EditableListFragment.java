@@ -22,8 +22,8 @@ import android.widget.TextView;
 
 /**
  * 編集可能なリスト。<br>
- * {@link SimpleListItem}のリストを{@link #setArguments(Bundle)}(key:{@link SimpleListItem#KEY}
- * )経由で渡すことで使用を開始する。<br>
+ * {@link SimpleListItem}のリストを{@link #setArguments(Bundle)}(key:
+ * {@link SimpleListItem#KEY} )経由で渡すことで使用を開始する。<br>
  * 初期化時にargsで{@link #KEY_LIST_LAYOUT_ID}でレイアウトのIDを渡せば、{@link ArrayAdapter}
  * のレイアウトとして利用される。
  * 
@@ -48,7 +48,8 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 		 * @param editType
 		 *            更新の種類。{@link EditableListFragment#ADD}、
 		 *            {@link EditableListFragment#EDIT}、
-		 *            {@link EditableListFragment#DEL}のいずれか
+		 *            {@link EditableListFragment#DEL}、
+		 *            {@link EditableListFragment#SORT}のいずれか
 		 */
 		void onListChanged(List<SimpleListItem> items, String tag, int editType);
 	}
@@ -66,7 +67,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	public static final int ADD = 0;
 
 	/**
-	 * 編集（並べ替えを含む）
+	 * 編集
 	 */
 	public static final int EDIT = 1;
 
@@ -74,6 +75,11 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	 * 削除
 	 */
 	public static final int DEL = 2;
+
+	/**
+	 * 並べ替え
+	 */
+	public static final int SORT = 3;
 
 	/**
 	 * 「項目を追加」ボタン専用の{@link SimpleListItem}用ID
