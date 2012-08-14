@@ -20,9 +20,36 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
 
+/**
+ * 編集可能なリスト。<br>
+ * {@link ListItem}のリストを{@link #setArguments(Bundle)}(key:{@link ListItem#KEY}
+ * )経由で渡すことで使用を開始する。<br>
+ * 初期化時にargsで{@link #KEY_LIST_LAYOUT_ID}でレイアウトのIDを渡せば、{@link ArrayAdapter}
+ * のレイアウトとして利用される。
+ * 
+ * @author nakagawa
+ * 
+ */
 public class EditableListFragment extends ListFragment implements OnItemClickListener {
 
+	/**
+	 * リストへの変更を通知するリスナ
+	 * 
+	 * @author nakagawa
+	 * 
+	 */
 	public interface OnListChangedListener {
+		/**
+		 * 
+		 * @param items
+		 *            更新後の{@link ListItem}のリスト
+		 * @param tag
+		 *            どのリストか識別する用の文字列（中に入る値は{@link Fragment#getTag()}などを想定）
+		 * @param editType
+		 *            更新の種類。{@link EditableListFragment#ADD}、
+		 *            {@link EditableListFragment#EDIT}、
+		 *            {@link EditableListFragment#DEL}のいずれか
+		 */
 		void onListChanged(List<ListItem> items, String tag, int editType);
 	}
 
@@ -33,12 +60,24 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	 */
 	public static final String KEY_LIST_LAYOUT_ID = EditableListFragment.class.getName() + "list_layout_id";
 
+	/**
+	 * 追加
+	 */
 	public static final int ADD = 0;
 
+	/**
+	 * 編集（並べ替えを含む）
+	 */
 	public static final int EDIT = 1;
 
+	/**
+	 * 削除
+	 */
 	public static final int DEL = 2;
 
+	/**
+	 * 「項目を追加」ボタン専用の{@link ListItem}用ID
+	 */
 	private static final String LISTITEM_ID_PLUSONE = EditableListFragment.class.getName() + "plus_one";
 
 	List<ListItem> mItems;
@@ -49,6 +88,9 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 	OnListChangedListener mListener;
 
+	/**
+	 * コンストラクタ
+	 */
 	public EditableListFragment() {
 		super();
 		mCachedItems = new ArrayList<ListItem>();
@@ -87,6 +129,11 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 	}
 
+	/**
+	 * {@link OnListChangedListener}をセットする
+	 * 
+	 * @param listener
+	 */
 	public void setOnListChangedListener(OnListChangedListener listener) {
 		mListener = listener;
 	}
@@ -241,6 +288,12 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 	}
 
+	/**
+	 * {@link ListItem}のtitleフィールドを表示する{@link ArrayAdapter}
+	 * 
+	 * @author nakagawa
+	 * 
+	 */
 	class EditableListItemAdapter extends ArrayAdapter<ListItem> {
 
 		public EditableListItemAdapter(Context context, int textViewResourceId, List<ListItem> objects) {

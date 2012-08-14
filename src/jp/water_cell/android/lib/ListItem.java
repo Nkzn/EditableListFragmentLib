@@ -3,6 +3,12 @@ package jp.water_cell.android.lib;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+/**
+ * IDとタイトルだけを持つシンプルなPOJO
+ * 
+ * @author nakagawa
+ * 
+ */
 public class ListItem implements Parcelable {
 
 	public static final String KEY = ListItem.class.getName() + "_key";
