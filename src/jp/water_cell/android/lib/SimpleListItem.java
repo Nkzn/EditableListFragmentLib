@@ -9,14 +9,14 @@ import android.os.Parcelable;
  * @author nakagawa
  * 
  */
-public class ListItem implements Parcelable {
+public class SimpleListItem implements Parcelable {
 
-	public static final String KEY = ListItem.class.getName() + "_key";
+	public static final String KEY = SimpleListItem.class.getName() + "_key";
 
 	private String id;
 	private String title;
 
-	public ListItem(String id, String title) {
+	public SimpleListItem(String id, String title) {
 		this.id = id;
 		this.title = title;
 	}
@@ -51,7 +51,7 @@ public class ListItem implements Parcelable {
 		this.title = title;
 	}
 
-	private ListItem(Parcel source) {
+	private SimpleListItem(Parcel source) {
 		this.id = source.readString();
 		this.title = source.readString();
 	}
@@ -61,16 +61,16 @@ public class ListItem implements Parcelable {
 		return 0;
 	}
 
-	public static final Parcelable.Creator<ListItem> CREATOR = new Parcelable.Creator<ListItem>() {
+	public static final Parcelable.Creator<SimpleListItem> CREATOR = new Parcelable.Creator<SimpleListItem>() {
 
 		@Override
-		public ListItem createFromParcel(Parcel source) {
-			return new ListItem(source);
+		public SimpleListItem createFromParcel(Parcel source) {
+			return new SimpleListItem(source);
 		}
 
 		@Override
-		public ListItem[] newArray(int size) {
-			return new ListItem[size];
+		public SimpleListItem[] newArray(int size) {
+			return new SimpleListItem[size];
 		}
 
 	};
@@ -108,7 +108,7 @@ public class ListItem implements Parcelable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ListItem other = (ListItem) obj;
+		SimpleListItem other = (SimpleListItem) obj;
 		if (id == null) {
 			if (other.id != null)
 				return false;
