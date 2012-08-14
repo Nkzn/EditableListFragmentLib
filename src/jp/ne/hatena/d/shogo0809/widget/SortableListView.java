@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -118,7 +119,7 @@ public class SortableListView extends ListView implements OnItemLongClickListene
 	/** リスト要素長押しイベント処理 */
 	@Override
 	public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-		return startDrag();
+		return startDrag(position);
 	}
 
 	/** ACTION_DOWN 時の MotionEvent をプロパティに格納 */
@@ -127,9 +128,14 @@ public class SortableListView extends ListView implements OnItemLongClickListene
 	}
 
 	/** ドラッグ開始 */
-	private boolean startDrag() {
-		// イベントから position を取得
-		mPositionFrom = eventToPosition(mActionDownEvent);
+	private boolean startDrag(int position) {
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+			mPositionFrom = position;
+		} else {
+			// イベントから position を取得
+			mPositionFrom = eventToPosition(mActionDownEvent);
+		}
 
 		// 取得した position が 0未満＝範囲外の場合はドラッグを開始しない
 		if (mPositionFrom < 0) {
