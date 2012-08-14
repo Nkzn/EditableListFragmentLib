@@ -20,10 +20,37 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
 
+/**
+ * 編集可能なリスト。<br>
+ * {@link SimpleListItem}のリストを{@link #setArguments(Bundle)}(key:{@link SimpleListItem#KEY}
+ * )経由で渡すことで使用を開始する。<br>
+ * 初期化時にargsで{@link #KEY_LIST_LAYOUT_ID}でレイアウトのIDを渡せば、{@link ArrayAdapter}
+ * のレイアウトとして利用される。
+ * 
+ * @author nakagawa
+ * 
+ */
 public class EditableListFragment extends ListFragment implements OnItemClickListener {
 
+	/**
+	 * リストへの変更を通知するリスナ
+	 * 
+	 * @author nakagawa
+	 * 
+	 */
 	public interface OnListChangedListener {
-		void onListChanged(List<ListItem> items, String tag, int editType);
+		/**
+		 * 
+		 * @param items
+		 *            更新後の{@link SimpleListItem}のリスト
+		 * @param tag
+		 *            どのリストか識別する用の文字列（中に入る値は{@link Fragment#getTag()}などを想定）
+		 * @param editType
+		 *            更新の種類。{@link EditableListFragment#ADD}、
+		 *            {@link EditableListFragment#EDIT}、
+		 *            {@link EditableListFragment#DEL}のいずれか
+		 */
+		void onListChanged(List<SimpleListItem> items, String tag, int editType);
 	}
 
 	/**
@@ -33,25 +60,40 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	 */
 	public static final String KEY_LIST_LAYOUT_ID = EditableListFragment.class.getName() + "list_layout_id";
 
+	/**
+	 * 追加
+	 */
 	public static final int ADD = 0;
 
+	/**
+	 * 編集（並べ替えを含む）
+	 */
 	public static final int EDIT = 1;
 
+	/**
+	 * 削除
+	 */
 	public static final int DEL = 2;
 
+	/**
+	 * 「項目を追加」ボタン専用の{@link SimpleListItem}用ID
+	 */
 	private static final String LISTITEM_ID_PLUSONE = EditableListFragment.class.getName() + "plus_one";
 
-	List<ListItem> mItems;
+	List<SimpleListItem> mItems;
 
-	List<ListItem> mCachedItems;
+	List<SimpleListItem> mCachedItems;
 
 	EditableListItemAdapter mAdapter;
 
 	OnListChangedListener mListener;
 
+	/**
+	 * コンストラクタ
+	 */
 	public EditableListFragment() {
 		super();
-		mCachedItems = new ArrayList<ListItem>();
+		mCachedItems = new ArrayList<SimpleListItem>();
 	}
 
 	@Override
@@ -60,8 +102,8 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 		if (mAdapter == null) {
 			Bundle args = getArguments();
-			mItems = args.getParcelableArrayList(ListItem.KEY);
-			mItems.add(new ListItem(LISTITEM_ID_PLUSONE, getString(R.string.add_item)));
+			mItems = args.getParcelableArrayList(SimpleListItem.KEY);
+			mItems.add(new SimpleListItem(LISTITEM_ID_PLUSONE, getString(R.string.add_item)));
 
 			int listLayoutId = args.getInt(KEY_LIST_LAYOUT_ID, 0);
 
@@ -76,7 +118,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-		final ListItem item = (ListItem) parent.getItemAtPosition(position);
+		final SimpleListItem item = (SimpleListItem) parent.getItemAtPosition(position);
 		final String itemId = item.getId();
 
 		if (TextUtils.equals(itemId, LISTITEM_ID_PLUSONE)) {
@@ -87,6 +129,11 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 	}
 
+	/**
+	 * {@link OnListChangedListener}をセットする
+	 * 
+	 * @param listener
+	 */
 	public void setOnListChangedListener(OnListChangedListener listener) {
 		mListener = listener;
 	}
@@ -97,7 +144,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	 * @param items
 	 *            成功後の全項目
 	 */
-	public void performed(List<ListItem> items) {
+	public void performed(List<SimpleListItem> items) {
 		Log.d("list", "performed(" + items + ")");
 		replaceItems(items);
 	}
@@ -110,16 +157,16 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 		Log.d("list", "\tbefore:");
 		Log.d("list", "\t\tmItems -> " + mItems);
 		Log.d("list", "\t\tcachedItems -> " + mCachedItems);
-		replaceItems(mCachedItems != null ? mCachedItems : new ArrayList<ListItem>());
+		replaceItems(mCachedItems != null ? mCachedItems : new ArrayList<SimpleListItem>());
 		Log.d("list", "\tafter:");
 		Log.d("list", "\t\tmItems -> " + mItems);
 		Log.d("list", "\t\tcachedItems -> " + mCachedItems);
 	}
 
-	private void replaceItems(List<ListItem> items) {
+	private void replaceItems(List<SimpleListItem> items) {
 		mItems.clear();
 		mItems.addAll(items);
-		mItems.add(new ListItem(LISTITEM_ID_PLUSONE, getString(R.string.add_item)));
+		mItems.add(new SimpleListItem(LISTITEM_ID_PLUSONE, getString(R.string.add_item)));
 
 		if (mAdapter != null) {
 			mAdapter.notifyDataSetChanged();
@@ -136,9 +183,9 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 				.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						mCachedItems = new ArrayList<ListItem>(mItems);
+						mCachedItems = new ArrayList<SimpleListItem>(mItems);
 
-						mItems.add(mItems.size() - 1, new ListItem(null, etInput.getText().toString()));
+						mItems.add(mItems.size() - 1, new SimpleListItem(null, etInput.getText().toString()));
 
 						if (mListener != null) {
 							mItems.remove(mItems.size() - 1);
@@ -158,7 +205,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	}
 
 	private void onClickItem(int position) {
-		final ListItem original = mItems.get(position);
+		final SimpleListItem original = mItems.get(position);
 
 		new AlertDialog.Builder(getActivity()).setItems(R.array.edit_delete, new DialogInterface.OnClickListener() {
 			@Override
@@ -175,9 +222,9 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 		}).show();
 	}
 
-	private void onClickEdit(ListItem _item) {
+	private void onClickEdit(SimpleListItem _item) {
 		Log.d("list", "onClickEdit");
-		final ListItem item = _item;
+		final SimpleListItem item = _item;
 		final int position = mItems.indexOf(item);
 		String title = item.getTitle();
 		String dialogTitle = getString(R.string.edit_title, (TextUtils.isEmpty(title) ? "" : title));
@@ -191,9 +238,9 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 				.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						mCachedItems = new ArrayList<ListItem>(mItems); // キャッシュを保存
+						mCachedItems = new ArrayList<SimpleListItem>(mItems); // キャッシュを保存
 
-						mItems.set(position, new ListItem(item.getId(), etInput.getText().toString()));
+						mItems.set(position, new SimpleListItem(item.getId(), etInput.getText().toString()));
 
 						if (mListener != null) {
 							mItems.remove(mItems.size() - 1);
@@ -212,14 +259,14 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 				}).show();
 	}
 
-	private void onClickDelete(ListItem _item) {
-		final ListItem item = _item;
+	private void onClickDelete(SimpleListItem _item) {
+		final SimpleListItem item = _item;
 
 		new AlertDialog.Builder(getActivity()).setTitle(R.string.delete_confirm).setMessage(item.getTitle())
 				.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						mCachedItems = new ArrayList<ListItem>(mItems); // キャッシュを保存
+						mCachedItems = new ArrayList<SimpleListItem>(mItems); // キャッシュを保存
 
 						mItems.remove(item);
 
@@ -241,16 +288,22 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 	}
 
-	class EditableListItemAdapter extends ArrayAdapter<ListItem> {
+	/**
+	 * {@link SimpleListItem}のtitleフィールドを表示する{@link ArrayAdapter}
+	 * 
+	 * @author nakagawa
+	 * 
+	 */
+	class EditableListItemAdapter extends ArrayAdapter<SimpleListItem> {
 
-		public EditableListItemAdapter(Context context, int textViewResourceId, List<ListItem> objects) {
+		public EditableListItemAdapter(Context context, int textViewResourceId, List<SimpleListItem> objects) {
 			super(context, textViewResourceId, objects);
 		}
 
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
 
-			final ListItem item = getItem(position);
+			final SimpleListItem item = getItem(position);
 			final String id = item.getId();
 
 			View view = super.getView(position, convertView, parent);
