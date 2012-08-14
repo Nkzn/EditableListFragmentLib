@@ -1,5 +1,6 @@
 package jp.water_cell.android.lib;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.app.AlertDialog;
@@ -9,6 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +23,7 @@ import android.widget.TextView;
 public class EditableListFragment extends ListFragment implements OnItemClickListener {
 
 	public interface OnListChangedListener {
-		void onListChanged(List<ListItem> items, String tag);
+		void onListChanged(List<ListItem> items, String tag, int editType);
 	}
 
 	/**
@@ -31,13 +33,26 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	 */
 	public static final String KEY_LIST_LAYOUT_ID = EditableListFragment.class.getName() + "list_layout_id";
 
+	public static final int ADD = 0;
+
+	public static final int EDIT = 1;
+
+	public static final int DEL = 2;
+
 	private static final String LISTITEM_ID_PLUSONE = EditableListFragment.class.getName() + "plus_one";
 
 	List<ListItem> mItems;
 
+	List<ListItem> mCachedItems;
+
 	EditableListItemAdapter mAdapter;
 
 	OnListChangedListener mListener;
+
+	public EditableListFragment() {
+		super();
+		mCachedItems = new ArrayList<ListItem>();
+	}
 
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -72,6 +87,45 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 	}
 
+	public void setOnListChangedListener(OnListChangedListener listener) {
+		mListener = listener;
+	}
+
+	/**
+	 * Activity側でModelの処理が成功した場合に呼ばれ、保存済みの項目が反映される
+	 * 
+	 * @param items
+	 *            成功後の全項目
+	 */
+	public void performed(List<ListItem> items) {
+		Log.d("list", "performed(" + items + ")");
+		replaceItems(items);
+	}
+
+	/**
+	 * Activity側でModelの処理が失敗した場合に呼ばれ、リストの内容が元に戻る
+	 */
+	public void canceled() {
+		Log.d("list", "canceled()");
+		Log.d("list", "\tbefore:");
+		Log.d("list", "\t\tmItems -> " + mItems);
+		Log.d("list", "\t\tcachedItems -> " + mCachedItems);
+		replaceItems(mCachedItems != null ? mCachedItems : new ArrayList<ListItem>());
+		Log.d("list", "\tafter:");
+		Log.d("list", "\t\tmItems -> " + mItems);
+		Log.d("list", "\t\tcachedItems -> " + mCachedItems);
+	}
+
+	private void replaceItems(List<ListItem> items) {
+		mItems.clear();
+		mItems.addAll(items);
+		mItems.add(new ListItem(LISTITEM_ID_PLUSONE, getString(R.string.add_item)));
+
+		if (mAdapter != null) {
+			mAdapter.notifyDataSetChanged();
+		}
+	}
+
 	private void onClickPlusOne() {
 
 		LayoutInflater inflater = LayoutInflater.from(getActivity());
@@ -82,10 +136,17 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 				.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
+						mCachedItems = new ArrayList<ListItem>(mItems);
+
 						mItems.add(mItems.size() - 1, new ListItem(null, etInput.getText().toString()));
+
+						if (mListener != null) {
+							mItems.remove(mItems.size() - 1);
+							mListener.onListChanged(mItems, getTag(), ADD);
+						}
+
 						if (mAdapter != null) {
-							mAdapter.notifyDataSetChanged(); // TODO
-																// 本当はIDが振られた後に更新
+							mAdapter.notifyDataSetChanged();
 						}
 					}
 				}).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -115,7 +176,9 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	}
 
 	private void onClickEdit(ListItem _item) {
+		Log.d("list", "onClickEdit");
 		final ListItem item = _item;
+		final int position = mItems.indexOf(item);
 		String title = item.getTitle();
 		String dialogTitle = getString(R.string.edit_title, (TextUtils.isEmpty(title) ? "" : title));
 
@@ -128,7 +191,15 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 				.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						item.setTitle(etInput.getText().toString());
+						mCachedItems = new ArrayList<ListItem>(mItems); // キャッシュを保存
+
+						mItems.set(position, new ListItem(item.getId(), etInput.getText().toString()));
+
+						if (mListener != null) {
+							mItems.remove(mItems.size() - 1);
+							mListener.onListChanged(mItems, getTag(), EDIT);
+						}
+
 						if (mAdapter != null) {
 							mAdapter.notifyDataSetChanged();
 						}
@@ -148,10 +219,17 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 				.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
+						mCachedItems = new ArrayList<ListItem>(mItems); // キャッシュを保存
+
 						mItems.remove(item);
+
+						if (mListener != null) {
+							mItems.remove(mItems.size() - 1);
+							mListener.onListChanged(mItems, getTag(), DEL);
+						}
+
 						if (mAdapter != null) {
-							mAdapter.notifyDataSetChanged(); // TODO
-																// 本当は削除成功のレスポンスがあってから更新
+							mAdapter.notifyDataSetChanged();
 						}
 					}
 				}).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -161,10 +239,6 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 					}
 				}).show();
 
-	}
-
-	public void setOnListChangedListener(OnListChangedListener listener) {
-		mListener = listener;
 	}
 
 	class EditableListItemAdapter extends ArrayAdapter<ListItem> {

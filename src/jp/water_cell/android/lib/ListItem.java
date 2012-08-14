@@ -115,4 +115,14 @@ public class ListItem implements Parcelable {
 			return false;
 		return true;
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "ListItem [id=" + id + ", title=" + title + "]";
+	}
 }
