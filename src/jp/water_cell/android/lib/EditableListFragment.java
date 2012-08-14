@@ -3,12 +3,15 @@ package jp.water_cell.android.lib;
 import java.util.ArrayList;
 import java.util.List;
 
+import jp.ne.hatena.d.shogo0809.widget.SortableListView;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
+import android.support.v4.app.SupportActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,6 +21,9 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 /**
@@ -61,30 +67,28 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	 */
 	public static final String KEY_LIST_LAYOUT_ID = EditableListFragment.class.getName() + "list_layout_id";
 
-	/**
-	 * 追加
-	 */
+	/** 追加 */
 	public static final int ADD = 0;
 
-	/**
-	 * 編集
-	 */
+	/** 編集 */
 	public static final int EDIT = 1;
 
-	/**
-	 * 削除
-	 */
+	/** 削除 */
 	public static final int DEL = 2;
 
-	/**
-	 * 並べ替え
-	 */
+	/** 並べ替え */
 	public static final int SORT = 3;
 
-	/**
-	 * 「項目を追加」ボタン専用の{@link SimpleListItem}用ID
-	 */
+	/** 「項目を追加」ボタン専用の{@link SimpleListItem}用ID */
 	private static final String LISTITEM_ID_PLUSONE = EditableListFragment.class.getName() + "plus_one";
+
+	/** ListViewカスタマイズ用 */
+	private static final int INTERNAL_PROGRESS_CONTAINER_ID = 0x00ff0002;
+
+	/** ListViewカスタマイズ用 */
+	private static final int INTERNAL_LIST_CONTAINER_ID = 0x00ff0003;
+
+	SimpleListItem mPlusOne;
 
 	List<SimpleListItem> mItems;
 
@@ -93,6 +97,8 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	EditableListItemAdapter mAdapter;
 
 	OnListChangedListener mListener;
+
+	int mDraggingPosition = -1;
 
 	/**
 	 * コンストラクタ
@@ -103,20 +109,49 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	}
 
 	@Override
+	public void onAttach(SupportActivity activity) {
+		super.onAttach(activity);
+
+		mPlusOne = new SimpleListItem(LISTITEM_ID_PLUSONE, getString(R.string.add_item));
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		// SupportLibraryのListFragmentを快適に使うためのおまじない。
+		// 参考：http://blog.nkzn.net/entry/2012/06/14/160706
+		View view = inflater.inflate(R.layout.simple_sortable_list, container, false);
+
+		ProgressBar pBar = (ProgressBar) view.findViewById(android.R.id.progress);
+		LinearLayout pframe = (LinearLayout) pBar.getParent();
+		pframe.setId(INTERNAL_PROGRESS_CONTAINER_ID);
+
+		SortableListView listView = (SortableListView) view.findViewById(android.R.id.list);
+		listView.setItemsCanFocus(false);
+		FrameLayout lFrame = (FrameLayout) listView.getParent();
+		lFrame.setId(INTERNAL_LIST_CONTAINER_ID);
+
+		return view;
+	}
+
+	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
 
 		if (mAdapter == null) {
 			Bundle args = getArguments();
 			mItems = args.getParcelableArrayList(SimpleListItem.KEY);
-			mItems.add(new SimpleListItem(LISTITEM_ID_PLUSONE, getString(R.string.add_item)));
+			mItems.add(mPlusOne);
 
 			int listLayoutId = args.getInt(KEY_LIST_LAYOUT_ID, 0);
 
 			mAdapter = new EditableListItemAdapter(getActivity(), listLayoutId == 0 ? android.R.layout.simple_list_item_1 : listLayoutId, mItems);
 
+			SortableListView listView = (SortableListView) getListView();
+			listView.setOnItemClickListener(this);
+			listView.setDragListener(new DragListener());
+			listView.setSortable(true);
+
 			setListAdapter(mAdapter);
-			getListView().setOnItemClickListener(this);
 		}
 
 	}
@@ -160,19 +195,13 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	 */
 	public void canceled() {
 		Log.d("list", "canceled()");
-		Log.d("list", "\tbefore:");
-		Log.d("list", "\t\tmItems -> " + mItems);
-		Log.d("list", "\t\tcachedItems -> " + mCachedItems);
 		replaceItems(mCachedItems != null ? mCachedItems : new ArrayList<SimpleListItem>());
-		Log.d("list", "\tafter:");
-		Log.d("list", "\t\tmItems -> " + mItems);
-		Log.d("list", "\t\tcachedItems -> " + mCachedItems);
 	}
 
 	private void replaceItems(List<SimpleListItem> items) {
 		mItems.clear();
 		mItems.addAll(items);
-		mItems.add(new SimpleListItem(LISTITEM_ID_PLUSONE, getString(R.string.add_item)));
+		mItems.add(mPlusOne);
 
 		if (mAdapter != null) {
 			mAdapter.notifyDataSetChanged();
@@ -194,7 +223,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 						mItems.add(mItems.size() - 1, new SimpleListItem(null, etInput.getText().toString()));
 
 						if (mListener != null) {
-							mItems.remove(mItems.size() - 1);
+							mItems.remove(mPlusOne);
 							mListener.onListChanged(mItems, getTag(), ADD);
 						}
 
@@ -249,7 +278,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 						mItems.set(position, new SimpleListItem(item.getId(), etInput.getText().toString()));
 
 						if (mListener != null) {
-							mItems.remove(mItems.size() - 1);
+							mItems.remove(mPlusOne);
 							mListener.onListChanged(mItems, getTag(), EDIT);
 						}
 
@@ -277,7 +306,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 						mItems.remove(item);
 
 						if (mListener != null) {
-							mItems.remove(mItems.size() - 1);
+							mItems.remove(mPlusOne);
 							mListener.onListChanged(mItems, getTag(), DEL);
 						}
 
@@ -327,6 +356,52 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 			}
 
 			return view;
+		}
+	}
+
+	class DragListener extends SortableListView.SimpleDragListener {
+		@Override
+		public int onStartDrag(int position) {
+			mDraggingPosition = position;
+			getListView().invalidateViews();
+			return position;
+		}
+
+		@Override
+		public int onDuringDrag(int positionFrom, int positionTo) {
+			if (positionFrom < 0 || positionTo < 0 || positionFrom == positionTo) {
+				return positionFrom;
+			}
+			int i;
+			if (positionFrom < positionTo) {
+				final int min = positionFrom;
+				final int max = positionTo;
+				final SimpleListItem data = mItems.get(min);
+				i = min;
+				while (i < max) {
+					mItems.set(i, mItems.get(++i));
+				}
+				mItems.set(max, data);
+			} else if (positionFrom > positionTo) {
+				final int min = positionTo;
+				final int max = positionFrom;
+				final SimpleListItem data = mItems.get(max);
+				i = max;
+				while (i > min) {
+					mItems.set(i, mItems.get(--i));
+				}
+				mItems.set(min, data);
+			}
+			mDraggingPosition = positionTo;
+			getListView().invalidateViews();
+			return positionTo;
+		}
+
+		@Override
+		public boolean onStopDrag(int positionFrom, int positionTo) {
+			mDraggingPosition = -1;
+			getListView().invalidateViews();
+			return super.onStopDrag(positionFrom, positionTo);
 		}
 	}
 }
