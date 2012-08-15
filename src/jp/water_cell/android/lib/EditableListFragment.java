@@ -106,11 +106,19 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 	@Override
 	public void onAttach(SupportActivity activity) {
+		Log.d("list", mTag + "/onAttach");
 		super.onAttach(activity);
 	}
 
 	@Override
+	public void onResume() {
+		Log.d("list", mTag + "/onResume");
+		super.onResume();
+	}
+
+	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		Log.d("list", mTag + "/onCreateView");
 		// SupportLibraryのListFragmentを快適に使うためのおまじない。
 		// 参考：http://blog.nkzn.net/entry/2012/06/14/160706
 		View view = inflater.inflate(R.layout.simple_sortable_list, container, false);
@@ -129,17 +137,15 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
+		Log.d("list", mTag + "/onViewCreated");
 		super.onViewCreated(view, savedInstanceState);
 
-		if (mAdapter == null) {
-			Bundle args = getArguments();
+		Bundle args = getArguments();
 
-			int listLayoutId = 0;
+		if (mAdapter == null && args != null) {
 
-			if (args != null) {
-				mItems = args.getParcelableArrayList(SimpleListItem.KEY);
-				listLayoutId = args.getInt(KEY_LIST_LAYOUT_ID, 0);
-			}
+			int listLayoutId = args.getInt(KEY_LIST_LAYOUT_ID, 0);
+			mItems = args.getParcelableArrayList(SimpleListItem.KEY);
 
 			if (mItems == null) {
 				mItems = new ArrayList<SimpleListItem>();
@@ -147,16 +153,16 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 			mAdapter = new EditableListItemAdapter(getActivity(), listLayoutId == 0 ? android.R.layout.simple_list_item_1 : listLayoutId, mItems);
 
-			SortableListView listView = (SortableListView) getListView();
-			listView.setOnItemClickListener(this);
-			listView.setDragListener(new DragListener());
-			listView.setSortable(true);
-
 			setListAdapter(mAdapter);
-
-			Button btnAdd = (Button) view.findViewById(R.id.btn_add);
-			btnAdd.setOnClickListener(this);
 		}
+
+		SortableListView listView = (SortableListView) getListView();
+		listView.setOnItemClickListener(this);
+		listView.setDragListener(new DragListener());
+		listView.setSortable(true);
+
+		Button btnAdd = (Button) view.findViewById(R.id.btn_add);
+		btnAdd.setOnClickListener(this);
 
 	}
 
