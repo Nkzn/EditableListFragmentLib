@@ -21,9 +21,9 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 /**
@@ -127,7 +127,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 		SortableListView listView = (SortableListView) view.findViewById(android.R.id.list);
 		listView.setItemsCanFocus(false);
-		FrameLayout lFrame = (FrameLayout) listView.getParent();
+		RelativeLayout lFrame = (RelativeLayout) listView.getParent();
 		lFrame.setId(INTERNAL_LIST_CONTAINER_ID);
 
 		return view;

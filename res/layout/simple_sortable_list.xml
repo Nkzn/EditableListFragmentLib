@@ -3,18 +3,29 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-
-        <jp.ne.hatena.d.shogo0809.widget.SortableListView
+    
+ 	<RelativeLayout 
+ 	    android:layout_width="match_parent"
+ 	    android:layout_height="match_parent" >
+ 	    
+ 	    <jp.ne.hatena.d.shogo0809.widget.SortableListView
             android:id="@id/android:list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_above="@+id/btn_add"
+            android:layout_alignParentTop="true"
             android:drawSelectorOnTop="false" />
-    </FrameLayout>
-
+ 	    
+ 	    <Button 
+ 	        android:id="@+id/btn_add"
+ 	        android:layout_width="match_parent"
+ 	        android:layout_height="wrap_content"
+ 	        android:layout_alignParentBottom="true"
+ 	        android:text="@string/add_item"
+ 	        android:drawableLeft="@android:drawable/ic_input_add" />
+ 	    	    
+ 	</RelativeLayout>
+ 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
