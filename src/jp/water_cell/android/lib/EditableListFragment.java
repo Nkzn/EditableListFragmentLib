@@ -133,13 +133,17 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 		if (mAdapter == null) {
 			Bundle args = getArguments();
-			mItems = args.getParcelableArrayList(SimpleListItem.KEY);
+
+			int listLayoutId = 0;
+
+			if (args != null) {
+				mItems = args.getParcelableArrayList(SimpleListItem.KEY);
+				listLayoutId = args.getInt(KEY_LIST_LAYOUT_ID, 0);
+			}
 
 			if (mItems == null) {
 				mItems = new ArrayList<SimpleListItem>();
 			}
-
-			int listLayoutId = args.getInt(KEY_LIST_LAYOUT_ID, 0);
 
 			mAdapter = new EditableListItemAdapter(getActivity(), listLayoutId == 0 ? android.R.layout.simple_list_item_1 : listLayoutId, mItems);
 
