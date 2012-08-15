@@ -92,6 +92,8 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 	OnListChangedListener mListener;
 
+	String mTag;
+
 	int mDraggingPosition = -1;
 
 	/**
@@ -190,6 +192,15 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	}
 
 	/**
+	 * オレオレタグをセットする（{@link Fragment#getTag()}で取れるものとは別）
+	 * 
+	 * @param tag
+	 */
+	public void setTag(String tag) {
+		mTag = tag;
+	}
+
+	/**
 	 * Activity側でModelの処理が成功した場合に呼ばれ、保存済みの項目が反映される
 	 * 
 	 * @param items
@@ -232,7 +243,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 						mItems.add(new SimpleListItem(null, etInput.getText().toString()));
 
 						if (mListener != null) {
-							mListener.onListChanged(mItems, getTag(), ADD);
+							mListener.onListChanged(mItems, getAvailableTag(), ADD);
 						}
 
 						if (mAdapter != null) {
@@ -268,7 +279,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 						mItems.set(position, new SimpleListItem(item.getId(), etInput.getText().toString()));
 
 						if (mListener != null) {
-							mListener.onListChanged(mItems, getTag(), EDIT);
+							mListener.onListChanged(mItems, getAvailableTag(), EDIT);
 						}
 
 						if (mAdapter != null) {
@@ -295,7 +306,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 						mItems.remove(item);
 
 						if (mListener != null) {
-							mListener.onListChanged(mItems, getTag(), DEL);
+							mListener.onListChanged(mItems, getAvailableTag(), DEL);
 						}
 
 						if (mAdapter != null) {
@@ -309,6 +320,10 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 					}
 				}).show();
 
+	}
+
+	private String getAvailableTag() {
+		return mTag != null ? mTag : getTag(); // オレオレタグがなければ本家を返す
 	}
 
 	/**
@@ -389,7 +404,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 		public boolean onStopDrag(int positionFrom, int positionTo) {
 
 			if (mListener != null) {
-				mListener.onListChanged(mItems, getTag(), SORT);
+				mListener.onListChanged(mItems, getAvailableTag(), SORT);
 			}
 
 			mDraggingPosition = -1;
