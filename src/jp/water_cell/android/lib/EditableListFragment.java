@@ -29,10 +29,10 @@ import android.widget.TextView;
 
 /**
  * 編集可能なリスト。<br>
- * {@link SimpleListItem}のリストを{@link #setArguments(Bundle)}(key:
- * {@link SimpleListItem#KEY} )経由で渡すことで使用を開始する。<br>
- * 初期化時にargsで{@link #KEY_LIST_LAYOUT_ID}でレイアウトのIDを渡せば、{@link ArrayAdapter}
- * のレイアウトとして利用される。
+ * {@link SimpleListItem}のリストを{@link #setArguments(Bundle)}(key: {@link SimpleListItem#KEY} )経由で渡すことで使用を開始する。<br>
+ * 初期化時にargsで{@link #KEY_LIST_LAYOUT_ID}でレイアウトのIDを渡せば、{@link ArrayAdapter} のレイアウトとして利用される。<br>
+ * 
+ * @see https://raw.github.com/Nkzn/EditableListFragmentSample/master/src/jp/water_cell/android/app/sample/MainActivity.java
  * 
  * @author nakagawa
  * 
@@ -53,9 +53,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 		 * @param tag
 		 *            どのリストか識別する用の文字列（中に入る値は{@link Fragment#getTag()}などを想定）
 		 * @param editType
-		 *            更新の種類。{@link EditableListFragment#ADD}、
-		 *            {@link EditableListFragment#EDIT}、
-		 *            {@link EditableListFragment#DEL}、
+		 *            更新の種類。{@link EditableListFragment#ADD}、 {@link EditableListFragment#EDIT}、 {@link EditableListFragment#DEL}、
 		 *            {@link EditableListFragment#SORT}のいずれか
 		 */
 		void onListChanged(List<SimpleListItem> items, String tag, int editType);
