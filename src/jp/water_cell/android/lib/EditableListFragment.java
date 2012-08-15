@@ -7,7 +7,6 @@ import jp.ne.hatena.d.shogo0809.widget.SortableListView;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
@@ -16,14 +15,16 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 /**
@@ -36,7 +37,7 @@ import android.widget.TextView;
  * @author nakagawa
  * 
  */
-public class EditableListFragment extends ListFragment implements OnItemClickListener {
+public class EditableListFragment extends ListFragment implements OnItemClickListener, OnClickListener {
 
 	/**
 	 * リストへの変更を通知するリスナ
@@ -79,16 +80,11 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	/** 並べ替え */
 	public static final int SORT = 3;
 
-	/** 「項目を追加」ボタン専用の{@link SimpleListItem}用ID */
-	private static final String LISTITEM_ID_PLUSONE = EditableListFragment.class.getName() + "plus_one";
-
 	/** ListViewカスタマイズ用 */
 	private static final int INTERNAL_PROGRESS_CONTAINER_ID = 0x00ff0002;
 
 	/** ListViewカスタマイズ用 */
 	private static final int INTERNAL_LIST_CONTAINER_ID = 0x00ff0003;
-
-	SimpleListItem mPlusOne;
 
 	List<SimpleListItem> mItems;
 
@@ -111,8 +107,6 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	@Override
 	public void onAttach(SupportActivity activity) {
 		super.onAttach(activity);
-
-		mPlusOne = new SimpleListItem(LISTITEM_ID_PLUSONE, getString(R.string.add_item));
 	}
 
 	@Override
@@ -127,7 +121,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 		SortableListView listView = (SortableListView) view.findViewById(android.R.id.list);
 		listView.setItemsCanFocus(false);
-		FrameLayout lFrame = (FrameLayout) listView.getParent();
+		RelativeLayout lFrame = (RelativeLayout) listView.getParent();
 		lFrame.setId(INTERNAL_LIST_CONTAINER_ID);
 
 		return view;
@@ -140,7 +134,6 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 		if (mAdapter == null) {
 			Bundle args = getArguments();
 			mItems = args.getParcelableArrayList(SimpleListItem.KEY);
-			mItems.add(mPlusOne);
 
 			int listLayoutId = args.getInt(KEY_LIST_LAYOUT_ID, 0);
 
@@ -152,6 +145,18 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 			listView.setSortable(true);
 
 			setListAdapter(mAdapter);
+
+			Button btnAdd = (Button) view.findViewById(R.id.btn_add);
+			btnAdd.setOnClickListener(this);
+		}
+
+	}
+
+	@Override
+	public void onClick(View v) {
+
+		if (v.getId() == R.id.btn_add) {
+			onClickPlusOne();
 		}
 
 	}
@@ -159,14 +164,21 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-		final SimpleListItem item = (SimpleListItem) parent.getItemAtPosition(position);
-		final String itemId = item.getId();
+		final SimpleListItem original = mItems.get(position);
 
-		if (TextUtils.equals(itemId, LISTITEM_ID_PLUSONE)) {
-			onClickPlusOne();
-		} else {
-			onClickItem(position);
-		}
+		new AlertDialog.Builder(getActivity()).setItems(R.array.edit_delete, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				switch (which) {
+				case 0:
+					onClickEdit(original);
+					break;
+				case 1:
+					onClickDelete(original);
+					break;
+				}
+			}
+		}).show();
 
 	}
 
@@ -201,7 +213,6 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	private void replaceItems(List<SimpleListItem> items) {
 		mItems.clear();
 		mItems.addAll(items);
-		mItems.add(mPlusOne);
 
 		if (mAdapter != null) {
 			mAdapter.notifyDataSetChanged();
@@ -220,10 +231,9 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 					public void onClick(DialogInterface dialog, int which) {
 						mCachedItems = new ArrayList<SimpleListItem>(mItems);
 
-						mItems.add(mItems.size() - 1, new SimpleListItem(null, etInput.getText().toString()));
+						mItems.add(new SimpleListItem(null, etInput.getText().toString()));
 
 						if (mListener != null) {
-							mItems.remove(mPlusOne);
 							mListener.onListChanged(mItems, getTag(), ADD);
 						}
 
@@ -237,24 +247,6 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 						dialog.dismiss();
 					}
 				}).show();
-	}
-
-	private void onClickItem(int position) {
-		final SimpleListItem original = mItems.get(position);
-
-		new AlertDialog.Builder(getActivity()).setItems(R.array.edit_delete, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				switch (which) {
-				case 0:
-					onClickEdit(original);
-					break;
-				case 1:
-					onClickDelete(original);
-					break;
-				}
-			}
-		}).show();
 	}
 
 	private void onClickEdit(SimpleListItem _item) {
@@ -278,7 +270,6 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 						mItems.set(position, new SimpleListItem(item.getId(), etInput.getText().toString()));
 
 						if (mListener != null) {
-							mItems.remove(mPlusOne);
 							mListener.onListChanged(mItems, getTag(), EDIT);
 						}
 
@@ -306,7 +297,6 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 						mItems.remove(item);
 
 						if (mListener != null) {
-							mItems.remove(mPlusOne);
 							mListener.onListChanged(mItems, getTag(), DEL);
 						}
 
@@ -339,7 +329,6 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 		public View getView(int position, View convertView, ViewGroup parent) {
 
 			final SimpleListItem item = getItem(position);
-			final String id = item.getId();
 
 			View view = super.getView(position, convertView, parent);
 
@@ -347,13 +336,6 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 			TextView text1 = (TextView) view.findViewById(android.R.id.text1);
 			text1.setText(TextUtils.isEmpty(title) ? "" : title);
-
-			if (TextUtils.equals(id, LISTITEM_ID_PLUSONE)) {
-				Drawable plus = getContext().getResources().getDrawable(android.R.drawable.ic_input_add);
-				text1.setCompoundDrawablesWithIntrinsicBounds(plus, null, null, null);
-			} else {
-				text1.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
-			}
 
 			return view;
 		}
