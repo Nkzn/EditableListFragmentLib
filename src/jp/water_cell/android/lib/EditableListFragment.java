@@ -341,6 +341,12 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 		}
 	}
 
+	/**
+	 * {@link SortableListView}のドラッグ操作を受け取るリスナクラス
+	 * 
+	 * @author shogogg
+	 * 
+	 */
 	class DragListener extends SortableListView.SimpleDragListener {
 		@Override
 		public int onStartDrag(int position) {
