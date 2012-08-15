@@ -344,6 +344,8 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	class DragListener extends SortableListView.SimpleDragListener {
 		@Override
 		public int onStartDrag(int position) {
+			mCachedItems = new ArrayList<SimpleListItem>(mItems); // キャッシュを保存
+
 			mDraggingPosition = position;
 			getListView().invalidateViews();
 			return position;
@@ -381,6 +383,11 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 		@Override
 		public boolean onStopDrag(int positionFrom, int positionTo) {
+
+			if (mListener != null) {
+				mListener.onListChanged(mItems, getTag(), SORT);
+			}
+
 			mDraggingPosition = -1;
 			getListView().invalidateViews();
 			return super.onStopDrag(positionFrom, positionTo);
