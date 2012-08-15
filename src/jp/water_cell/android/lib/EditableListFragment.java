@@ -322,7 +322,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 	}
 
-	private String getAvailableTag() {
+	public String getAvailableTag() {
 		return mTag != null ? mTag : getTag(); // オレオレタグがなければ本家を返す
 	}
 
