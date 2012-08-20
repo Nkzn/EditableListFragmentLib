@@ -55,8 +55,10 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 		 * @param editType
 		 *            更新の種類。{@link EditableListFragment#ADD}、 {@link EditableListFragment#EDIT}、 {@link EditableListFragment#DEL}、
 		 *            {@link EditableListFragment#SORT}のいずれか
+		 * @param modifiedItem
+		 *            変更があった項目(SORT時はnull)
 		 */
-		void onListChanged(List<SimpleListItem> items, String tag, int editType);
+		void onListChanged(List<SimpleListItem> items, String tag, int editType, SimpleListItem modifiedItem);
 	}
 
 	/**
@@ -254,10 +256,14 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 					public void onClick(DialogInterface dialog, int which) {
 						mCachedItems = new ArrayList<SimpleListItem>(mItems);
 
-						mItems.add(new SimpleListItem(null, etInput.getText().toString()));
+						String text = etInput.getText() == null ? "" : etInput.getText().toString();
+
+						SimpleListItem addItem = new SimpleListItem(null, text);
+
+						mItems.add(addItem);
 
 						if (mListener != null) {
-							mListener.onListChanged(mItems, getAvailableTag(), ADD);
+							mListener.onListChanged(mItems, getAvailableTag(), ADD, addItem);
 						}
 
 						if (mAdapter != null) {
@@ -290,10 +296,14 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 					public void onClick(DialogInterface dialog, int which) {
 						mCachedItems = new ArrayList<SimpleListItem>(mItems); // キャッシュを保存
 
-						mItems.set(position, new SimpleListItem(item.getId(), etInput.getText().toString()));
+						String text = etInput.getText() == null ? "" : etInput.getText().toString();
+
+						SimpleListItem editedItem = new SimpleListItem(item.getId(), text);
+
+						mItems.set(position, editedItem);
 
 						if (mListener != null) {
-							mListener.onListChanged(mItems, getAvailableTag(), EDIT);
+							mListener.onListChanged(mItems, getAvailableTag(), EDIT, editedItem);
 						}
 
 						if (mAdapter != null) {
@@ -320,7 +330,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 						mItems.remove(item);
 
 						if (mListener != null) {
-							mListener.onListChanged(mItems, getAvailableTag(), DEL);
+							mListener.onListChanged(mItems, getAvailableTag(), DEL, item);
 						}
 
 						if (mAdapter != null) {
@@ -418,7 +428,7 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 		public boolean onStopDrag(int positionFrom, int positionTo) {
 
 			if (mListener != null) {
-				mListener.onListChanged(mItems, getAvailableTag(), SORT);
+				mListener.onListChanged(mItems, getAvailableTag(), SORT, null);
 			}
 
 			mDraggingPosition = -1;
