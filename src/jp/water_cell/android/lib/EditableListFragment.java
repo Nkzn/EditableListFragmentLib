@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jp.ne.hatena.d.shogo0809.widget.SortableListView;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.ListFragment;
-import android.support.v4.app.SupportActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,6 +26,8 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.actionbarsherlock.app.SherlockListFragment;
+
 /**
  * 編集可能なリスト。<br>
  * {@link SimpleListItem}のリストを{@link #setArguments(Bundle)}(key: {@link SimpleListItem#KEY} )経由で渡すことで使用を開始する。<br>
@@ -37,7 +38,7 @@ import android.widget.TextView;
  * @author nakagawa
  * 
  */
-public class EditableListFragment extends ListFragment implements OnItemClickListener, OnClickListener {
+public class EditableListFragment extends SherlockListFragment implements OnItemClickListener, OnClickListener {
 
 	/**
 	 * リストへの変更を通知するリスナ
@@ -107,20 +108,17 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 	}
 
 	@Override
-	public void onAttach(SupportActivity activity) {
-		Log.d("list", mTag + "/onAttach");
+	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 	}
 
 	@Override
 	public void onResume() {
-		Log.d("list", mTag + "/onResume");
 		super.onResume();
 	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		Log.d("list", mTag + "/onCreateView");
 		// SupportLibraryのListFragmentを快適に使うためのおまじない。
 		// 参考：http://blog.nkzn.net/entry/2012/06/14/160706
 		View view = inflater.inflate(R.layout.simple_sortable_list, container, false);
@@ -139,7 +137,6 @@ public class EditableListFragment extends ListFragment implements OnItemClickLis
 
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
-		Log.d("list", mTag + "/onViewCreated");
 		super.onViewCreated(view, savedInstanceState);
 
 		Bundle args = getArguments();
